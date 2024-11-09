@@ -1,0 +1,164 @@
+{
+    "filters": {
+      "dateFrom": "2024-11-09",
+      "dateTo": "2024-11-10",
+      "permission": "TIER_ONE"
+    },
+    "resultSet": {
+      "count": 45,
+      "competitions": "PD,BSA,ELC,SA,BL1,PL,DED,PPL,FL1",
+      "first": "2024-11-09",
+      "last": "2024-11-10",
+      "played": 1
+    },
+    "matches": [
+      {
+        "area": {
+          "id": 2224,
+          "name": "Spain",
+          "code": "ESP",
+          "flag": "https://crests.football-data.org/760.svg"
+        },
+        "competition": {
+          "id": 2014,
+          "name": "Primera Division",
+          "code": "PD",
+          "type": "LEAGUE",
+          "emblem": "https://crests.football-data.org/laliga.png"
+        },
+        "season": {
+          "id": 2292,
+          "startDate": "2024-08-18",
+          "endDate": "2025-05-25",
+          "currentMatchday": 13,
+          "winner": null
+        },
+        "id": 498742,
+        "utcDate": "2024-11-09T00:00:00Z",
+        "status": "POSTPONED",
+        "matchday": 13,
+        "stage": "REGULAR_SEASON",
+        "group": null,
+        "lastUpdated": "2024-11-07T00:20:52Z",
+        "homeTeam": {
+          "id": 80,
+          "name": "RCD Espanyol de Barcelona",
+          "shortName": "Espanyol",
+          "tla": "ESP",
+          "crest": "https://crests.football-data.org/80.png"
+        },
+        "awayTeam": {
+          "id": 95,
+          "name": "Valencia CF",
+          "shortName": "Valencia",
+          "tla": "VAL",
+          "crest": "https://crests.football-data.org/95.png"
+        },
+        "score": {
+          "winner": null,
+          "duration": "REGULAR",
+          "fullTime": {
+            "home": null,
+            "away": null
+          },
+          "halfTime": {
+            "home": null,
+            "away": null
+          }
+        },
+        "odds": {
+          "msg": "Activate Odds-Package in User-Panel to retrieve odds."
+        },
+        "referees": []
+      },
+      {
+        "area": {
+          "id": 2032,
+          "name": "Brazil",
+          "code": "BRA",
+          "flag": "https://crests.football-data.org/764.svg"
+        },
+        "competition": {
+          "id": 2013,
+          "name": "Campeonato Brasileiro Série A",
+          "code": "BSA",
+          "type": "LEAGUE",
+          "emblem": "https://crests.football-data.org/bsa.png"
+        },
+        "season": {
+          "id": 2257,
+          "startDate": "2024-04-13",
+          "endDate": "2024-12-08",
+          "currentMatchday": 33,
+          "winner": null
+        },
+        "id": 494080,
+        "utcDate": "2024-11-09T00:30:00Z",
+        "status": "FINISHED",
+        "matchday": 33,
+        "stage": "REGULAR_SEASON",
+        "group": null,
+        "lastUpdated": "2024-11-09T02:30:44Z",
+        "homeTeam": {
+          "id": 1769,
+          "name": "SE Palmeiras",
+          "shortName": "Palmeiras",
+          "tla": "PAL",
+          "crest": "https://crests.football-data.org/1769.png"
+        },
+        "awayTeam": {
+          "id": 1767,
+          "name": "Grêmio FBPA",
+          "shortName": "Grêmio",
+          "tla": "FBP",
+          "crest": "https://crests.football-data.org/1767.png"
+        },
+        "score": {
+          "winner": "DRAW",
+          "duration": "REGULAR",
+          "fullTime": {
+            "home": 0,
+            "away": 0
+          },
+          "halfTime": {
+            "home": 0,
+            "away": 0
+          }
+        },
+        "odds": {
+          "msg": "Activate Odds-Package in User-Panel to retrieve odds."
+        },
+        "referees": []
+      },
+      {
+        "area": {
+          "id": 2072,
+          "name": "England",
+          "code": "ENG",
+          "flag": "https://crests.football-data.org/770.svg"
+        },
+        "competition": {
+          "id": 2016,
+          "name": "Championship",
+          "code": "ELC",
+          "type": "LEAGUE",
+          "emblem": "https://crests.football-data.org/ELC.png"
+        },
+        "season": {
+          "id": 2301,
+          "startDate": "2024-08-09",
+          "endDate": "2025-05-03",
+          "currentMatchday": 15,
+          "winner": null
+        },
+        "id": 500614,
+        "utcDate": "2024-11-09T12:30:00Z",
+        "status": "TIMED",
+        "matchday": 15,
+        "stage": "REGULAR_SEASON",
+        "group": null,
+        "lastUpdated": "2024-11-07T01:32:01Z"
+      }
+    ]
+  }
+  
