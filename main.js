@@ -10,7 +10,7 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'سلام! من ربات نمایش بازی‌های فوتبال امروز هستم.', {
+  bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم ', {
     reply_markup: {
       inline_keyboard: [
         [
@@ -20,7 +20,7 @@ bot.onText(/\/start/, (msg) => {
           { text: 'نمایش جدول لیگ‌ها', callback_data: 'show_leagues' }
         ],
         [
-          { text: 'ارتباط با پشتیبانی', callback_data: 'contact_support' }
+          { text: 'ارتباط با ادمین', callback_data: 'contact_support' }
         ]
       ]
     }
@@ -34,7 +34,15 @@ bot.on('callback_query', async (callbackQuery) => {
   bot.answerCallbackQuery(callbackQuery.id);
 
   if (data === 'show_matches') {
-    bot.sendMessage(chatId, 'در حال نمایش بازی‌ها...');
+    bot.sendMessage(chatId, 'در حال نمایش بازی‌ها...', {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: 'برگشت به منو اصلی', callback_data: 'back_to_main_menu' }
+          ]
+        ]
+      }
+    });
     try {
       const today = new Date();
       const localDate = today.toISOString().split('T')[0]; 
@@ -104,11 +112,9 @@ bot.on('callback_query', async (callbackQuery) => {
         'Bundesliga': 'بوندسلیگا',
         'Premier League': 'لیگ انگلیس',
         'UEFA Champions League': 'لیگ قهرمانان اروپا',
-        'Serie A': 'سری آ',
-        'FIFA World Cup': 'بازی‌های ملی'
+        'Serie A': 'سری آ'
       };
 
-      // فیلتر کردن بازی‌ها
       for (let leagueCode in targetCompetitions) {
         const leagueName = targetCompetitions[leagueCode];
 
@@ -129,7 +135,7 @@ bot.on('callback_query', async (callbackQuery) => {
               minute: '2-digit',
             });
 
-            message += `\n🔹 *${importantEmoji}* ${homeTeam} 🆚 ${awayTeam} ⏱ *${startTime}*\n`;
+            message += `\n🔹 *${importantEmoji}* ${homeTeam} - ${awayTeam} ⏱ *${startTime}*\n`;
           });
 
           message += '\n';
@@ -147,7 +153,6 @@ bot.on('callback_query', async (callbackQuery) => {
       bot.sendMessage(chatId, 'خطا در دریافت داده‌ها. لطفاً دوباره تلاش کنید.');
     }
   } 
-  // بخش جدول لیگ‌ها
   else if (data === 'show_leagues') {
     bot.sendMessage(chatId, 'لطفاً لیگ مورد نظر خود را انتخاب کنید:', {
       reply_markup: {
@@ -162,23 +167,40 @@ bot.on('callback_query', async (callbackQuery) => {
           ],
           [
             { text: 'سری آ', callback_data: 'league_serie_a' },
-            { text: 'بازی‌های ملی', callback_data: 'league_fifa_world_cup' }
+          ],
+          [
+            { text: 'برگشت به منو اصلی', callback_data: 'back_to_main_menu' }
+          ]
+        ]
+      }
+    });
+  } 
+  else if (data.startsWith('league_')) {
+    const leagueCode = data.split('_')[1]; 
+    await showLeagueTable(chatId, leagueCode); 
+  }
+  else if (data === 'contact_support') {
+    bot.sendMessage(chatId, 'برای پشتیبانی با ایدی @AIinjad ارتباط بگیرید.');
+  }
+  else if (data === 'back_to_main_menu') {
+    bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم ', {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: 'نمایش بازی‌ها', callback_data: 'show_matches' }
+          ],
+          [
+            { text: 'نمایش جدول لیگ‌ها', callback_data: 'show_leagues' }
+          ],
+          [
+            { text: 'ارتباط با ادمین', callback_data: 'contact_support' }
           ]
         ]
       }
     });
   }
-  // درخواست جدول لیگ خاص
-  else if (data.startsWith('league_')) {
-    const leagueCode = data.split('_')[1]; 
-    await showLeagueTable(chatId, leagueCode);  // حالا تابع درست در دسترس است
-  }
-  else if (data === 'contact_support') {
-    bot.sendMessage(chatId, 'برای پشتیبانی با ایدی @AIinjad ارتباط بگیرید.');
-  }
 });
 
-// تابع دریافت جدول لیگ
 const showLeagueTable = async (chatId, leagueCode) => {
   try {
     const competitionId = await getCompetitionId(leagueCode);
@@ -210,12 +232,11 @@ const showLeagueTable = async (chatId, leagueCode) => {
 
 const getCompetitionId = (leagueCode) => {
   const competitionIds = {
-    premier_league: 'PRL',
-    la_liga: 'PD',
+    premier: 'PRL',
+    la: 'PD',
     bundesliga: 'BL1',
-    uefa_champions: 'CL',
-    serie_a: 'SA',
-    fifa_world_cup: 'WC'
+    uefa: 'CL',
+    serie: 'SA',
   };
   
   return competitionIds[leagueCode];
