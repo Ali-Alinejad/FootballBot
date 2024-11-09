@@ -1,8 +1,9 @@
+require('dotenv').config(); // برای استفاده از متغیرهای محیطی
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const TELEGRAM_TOKEN = '7175377029:AAFlqQu26YSYmB2nF5wv6t1hBCVPyQSPpmc';
-const API_KEY = '456620b184de464c9f91ab031d9d3fa3';
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN; 
+const API_KEY = process.env.API_KEY;
 const BASE_URL = 'https://api.football-data.org/v4/matches';
 const COMPETITIONS_URL = 'https://api.football-data.org/v4/competitions';
 
@@ -10,7 +11,7 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم ', {
+  bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم', {
     reply_markup: {
       inline_keyboard: [
         [
@@ -43,22 +44,21 @@ bot.on('callback_query', async (callbackQuery) => {
         ]
       }
     });
+
     try {
       const today = new Date();
-      const localDate = today.toISOString().split('T')[0]; 
+      const localDate = today.toISOString().split('T')[0]; // تاریخ امروز
       console.log('Requesting matches for:', localDate);
 
       const response = await axios.get(BASE_URL, {
-        headers: {
-          'X-Auth-Token': API_KEY
-        }
+        headers: { 'X-Auth-Token': API_KEY }
       });
 
-      console.log('Full API Response:', JSON.stringify(response.data));
+      const matches = response.data.matches.filter(match =>
+        match.utcDate.startsWith(localDate)
+      );
 
-      const matches = response.data.matches;
-
-      if (!matches || matches.length === 0) {
+      if (matches.length === 0) {
         bot.sendMessage(chatId, 'امروز بازی‌ای برای نمایش وجود ندارد.');
         return;
       }
@@ -117,8 +117,7 @@ bot.on('callback_query', async (callbackQuery) => {
 
       for (let leagueCode in targetCompetitions) {
         const leagueName = targetCompetitions[leagueCode];
-
-        const leagueMatches = matches.filter((match) => match.competition.name === leagueCode);
+        const leagueMatches = matches.filter(match => match.competition.name === leagueCode);
 
         if (leagueMatches.length > 0) {
           message += `🔺 *${leagueName}*\n`;
@@ -143,17 +142,15 @@ bot.on('callback_query', async (callbackQuery) => {
       }
 
       if (message === "*بازی‌های فوتبال امروز:*\n\n") {
-        bot.sendMessage(chatId, 'امروز بازی‌ای در لالیگا، بوندسلیگا، لیگ انگلیس، لیگ قهرمانان اروپا، سری آ یا بازی‌های ملی وجود ندارد.');
+        bot.sendMessage(chatId, 'امروز بازی‌ای در این لیگ‌ها وجود ندارد.');
       } else {
         bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
       }
-
     } catch (error) {
       console.error(error);
       bot.sendMessage(chatId, 'خطا در دریافت داده‌ها. لطفاً دوباره تلاش کنید.');
     }
-  } 
-  else if (data === 'show_leagues') {
+  } else if (data === 'show_leagues') {
     bot.sendMessage(chatId, 'لطفاً لیگ مورد نظر خود را انتخاب کنید:', {
       reply_markup: {
         inline_keyboard: [
@@ -166,7 +163,7 @@ bot.on('callback_query', async (callbackQuery) => {
             { text: 'لیگ قهرمانان اروپا', callback_data: 'league_uefa_champions' }
           ],
           [
-            { text: 'سری آ', callback_data: 'league_serie_a' },
+            { text: 'سری آ', callback_data: 'league_serie_a' }
           ],
           [
             { text: 'برگشت به منو اصلی', callback_data: 'back_to_main_menu' }
@@ -174,16 +171,13 @@ bot.on('callback_query', async (callbackQuery) => {
         ]
       }
     });
-  } 
-  else if (data.startsWith('league_')) {
-    const leagueCode = data.split('_')[1]; 
-    await showLeagueTable(chatId, leagueCode); 
-  }
-  else if (data === 'contact_support') {
+  } else if (data.startsWith('league_')) {
+    const leagueCode = data.split('_')[1];
+    await showLeagueTable(chatId, leagueCode);
+  } else if (data === 'contact_support') {
     bot.sendMessage(chatId, 'برای پشتیبانی با ایدی @AIinjad ارتباط بگیرید.');
-  }
-  else if (data === 'back_to_main_menu') {
-    bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم ', {
+  } else if (data === 'back_to_main_menu') {
+    bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم', {
       reply_markup: {
         inline_keyboard: [
           [
@@ -219,7 +213,7 @@ const showLeagueTable = async (chatId, leagueCode) => {
 
     let tableMessage = '*جدول لیگ:*\n\n';
     standings.forEach((team, index) => {
-      tableMessage += `🔹 *${index + 1}*: ${team.team.name} - ${team.points} امتیاز\n`;
+      tableMessage += `› *${index + 1}* : ${team.team.name} ⭐️   ${team.points} \n`;
     });
 
     bot.sendMessage(chatId, tableMessage, { parse_mode: 'Markdown' });
@@ -232,7 +226,7 @@ const showLeagueTable = async (chatId, leagueCode) => {
 
 const getCompetitionId = (leagueCode) => {
   const competitionIds = {
-    premier: 'PRL',
+    premier: 'PL',
     la: 'PD',
     bundesliga: 'BL1',
     uefa: 'CL',
