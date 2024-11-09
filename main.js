@@ -16,7 +16,7 @@ bot.onText(/\/start/, (msg) => {
           { text: 'نمایش بازی‌ها', callback_data: 'show_matches' }
         ],
         [
-          { text: 'تماس با پشتیبانی', callback_data: 'contact_support' }
+          { text: 'ارتباط با پشتیبانی', callback_data: 'contact_support' }
         ]
       ]
     }
@@ -69,6 +69,41 @@ bot.on('callback_query', async (callbackQuery) => {
           'Borussia Dortmund', 
           'SSC Napoli'         
         ];
+        const teamShortnames = {
+        
+            'Manchester United FC': 'Man Utd',
+            'Manchester City FC': 'Man City',
+            'Chelsea FC': 'Chelsea',
+            'Liverpool FC': 'Liverpool',
+            'Arsenal FC': 'Arsenal',
+            'Tottenham Hotspur': 'Spurs',
+            'Newcastle United': 'Newcastle',
+            'Leicester City': 'Leicester',
+            'Real Madrid CF': 'Real Madrid',
+            'FC Barcelona': 'Barça',
+            'Atlético Madrid': 'Atleti',
+            'Sevilla FC': 'Sevilla',
+            'Valencia CF': 'Valencia',
+            'Real Sociedad': 'Real Sociedad',
+            'FC Bayern München': 'Bayern',
+            'Borussia Dortmund': 'Dortmund',
+            'RB Leipzig': 'RB Leipzig',
+            'Bayer 04 Leverkusen': 'Leverkusen',
+            'Borussia Mönchengladbach': 'M’Gladbach',
+            'VfL Wolfsburg': 'Wolfsburg',
+            'Juventus FC': 'Juventus',
+            'AC Milan': 'Milan',
+            'Inter Milan': 'Inter',
+            'AS Roma': 'Roma',
+            'SSC Napoli': 'Napoli',
+            'VFL Bochum 1848': 'Bochum',
+            'Lazio': 'Lazio',
+            'Atalanta BC': 'Atalanta',
+            'RCD Espanyol de Barcelona' : 'Espanyol',
+            'Wolverhampton Wanderers FC':'Wolverhampton',
+            'West Ham United FC':'West ham',
+            'Brighton & Hove Albion FC':'Brighton',
+           };
   
         const targetCompetitions = {
           'Primera Division': 'لالیگا',
@@ -88,23 +123,18 @@ bot.on('callback_query', async (callbackQuery) => {
             message += `🔺 *${leagueName}*\n`;
             
             leagueMatches.forEach((match) => {
-              const homeTeam = match.homeTeam.name;
-              const awayTeam = match.awayTeam.name;
+              const homeTeam = teamShortnames[match.homeTeam.name] || match.homeTeam.name;
+              const awayTeam = teamShortnames[match.awayTeam.name] || match.awayTeam.name;
   
-     
-              const isImportantMatch = importantTeams.includes(homeTeam) || importantTeams.includes(awayTeam);
-  
-          
-              const importantEmoji = isImportantMatch ? '🔥' : '';
+              const isImportantMatch = importantTeams.includes(match.homeTeam.name) || importantTeams.includes(match.awayTeam.name);
+              const importantEmoji = isImportantMatch ? '🔥' : '';  
   
               const startTime = new Date(match.utcDate).toLocaleTimeString('fa-IR', {
                 hour: '2-digit',
                 minute: '2-digit',
               });
-  
-              message += `🔹 ${importantEmoji} **${homeTeam}** 🆚 **${awayTeam}**-*${startTime}*\n`;
+              message += `\n🔹 *${importantEmoji}*${homeTeam}  🆚${awayTeam } ⏱*${startTime}*\n`;
             });
-  
             message += '\n';
           }
         }
