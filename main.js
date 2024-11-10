@@ -43,13 +43,9 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         ]
       }
-    });
-
-    try {
+    });try {
       const today = new Date();
-      const localDate = today.toISOString().split('T')[0]; // تاریخ امروز
-      console.log('Requesting matches for:', localDate);
-
+      const localDate = today.toISOString().split('T')[0];
       const response = await axios.get(BASE_URL, {
         headers: { 'X-Auth-Token': API_KEY }
       });
@@ -95,7 +91,7 @@ bot.on('callback_query', async (callbackQuery) => {
         'VfL Wolfsburg': 'Wolfsburg',
         'Juventus FC': 'Juventus',
         'AC Milan': 'Milan',
-        'Inter Milan': 'Inter',
+        'FC Internazionale Milano': 'Inter',
         'AS Roma': 'Roma',
         'SSC Napoli': 'Napoli',
         'VFL Bochum 1848': 'Bochum',
