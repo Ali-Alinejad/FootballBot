@@ -1,7 +1,7 @@
-require('dotenv').config(); 
-const express = require('express');
+require('dotenv').config(); // برای استفاده از متغیرهای محیطی
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
+const express = require('express');
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN; 
 const API_KEY = process.env.API_KEY;
@@ -10,69 +10,51 @@ const COMPETITIONS_URL = 'https://api.football-data.org/v4/competitions';
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const app = express();
-const PORT = process.env.PORT || 8080; 
 
-bot.setWebHook(''); 
+
+const PORT = process.env.PORT || 8080;
+const WEBHOOK_URL = process.env.WEBHOOK_URL; 
+
+
+bot.setWebHook(WEBHOOK_URL);
+
 
 app.use(express.json());
+
 
 app.post('/webhook', (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200); 
 });
 
-// Define the showLeagueTable function above the callback handler
-const showLeagueTable = async (chatId, leagueCode) => {
-  try {
-    const competitionId = await getCompetitionId(leagueCode);
+app.listen(PORT, () => {
+  console.log(`Express server is running on port ${PORT}`);
+});
 
-    const response = await axios.get(`https://api.football-data.org/v4/competitions/${competitionId}/standings`, {
-      headers: {
-        'X-Auth-Token': API_KEY
-      }
-    });
-
-
-
-    const standings = response.data.standings[0].table;
-
-    if (standings.length === 0) {
-      bot.sendMessage(chatId, 'No standings available.');
-      return;
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم', {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: 'نمایش بازی‌ها', callback_data: 'show_matches' }
+        ],
+        [
+          { text: 'نمایش جدول لیگ‌ها', callback_data: 'show_leagues' }
+        ],
+        [
+          { text: 'ارتباط با ادمین', callback_data: 'contact_support' }
+        ]
+      ]
     }
-
-    let tableMessage = '*League Table:*\n\n';
-    standings.forEach((team, index) => {
-      tableMessage += `› *${index + 1}* : ${team.team.name} ⭐️   ${team.points} \n`;
-    });
-
-    bot.sendMessage(chatId, tableMessage, { parse_mode: 'Markdown' });
-
-  } catch (error) {
-
-    console.error('Error fetching league table:', error);
-    bot.sendMessage(chatId, 'Error retrieving league table. Please try again.');
-  }
-};
-
-const getCompetitionId = (leagueCode) => {
-  const competitionIds = {
-    premier: 'PL', 
-    la: 'PD',        
-    bundesliga: 'BL1',    
-    uefa: 'CL', 
-    serie: 'SA'          
-  };
-
-  return competitionIds[leagueCode];  
-};
+  });
+});
 
 bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
 
-  bot.answerCallbackQuery(callbackQuery.id);
-
+  bot.answerCallbackQuery(callbackQuery.id, { show_alert: false });
   if (data === 'show_matches') {
     bot.sendMessage(chatId, 'در حال نمایش بازی‌ها...', {
       reply_markup: {
@@ -84,10 +66,10 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     });
 
-    // Fetch and display matches
     try {
       const today = new Date();
-      const localDate = today.toISOString().split('T')[0];
+      const localDate = today.toISOString().split('T')[0]; 
+
       const response = await axios.get(BASE_URL, {
         headers: { 'X-Auth-Token': API_KEY }
       });
@@ -102,6 +84,7 @@ bot.on('callback_query', async (callbackQuery) => {
       }
 
       let message = "*بازی‌های فوتبال امروز:*\n\n";
+
       const importantTeams = [
         'FC Barcelona', 'Real Madrid CF', 'Liverpool FC', 'Manchester United FC',
         'Bayern München', 'Juventus FC', 'Paris Saint-Germain FC', 'Chelsea FC',
@@ -132,7 +115,7 @@ bot.on('callback_query', async (callbackQuery) => {
         'VfL Wolfsburg': 'Wolfsburg',
         'Juventus FC': 'Juventus',
         'AC Milan': 'Milan',
-        'FC Internazionale Milano': 'Inter',
+        'Inter Milan': 'Inter',
         'AS Roma': 'Roma',
         'SSC Napoli': 'Napoli',
         'VFL Bochum 1848': 'Bochum',
@@ -144,8 +127,45 @@ bot.on('callback_query', async (callbackQuery) => {
         'Brighton & Hove Albion FC': 'Brighton',
       };
 
-      // Process matches here...
+      const targetCompetitions = {
+        'Primera Division': 'لالیگا',
+        'Bundesliga': 'بوندسلیگا',
+        'Premier League': 'لیگ انگلیس',
+        'UEFA Champions League': 'لیگ قهرمانان اروپا',
+        'Serie A': 'سری آ'
+      };
 
+      for (let leagueCode in targetCompetitions) {
+        const leagueName = targetCompetitions[leagueCode];
+        const leagueMatches = matches.filter(match => match.competition.name === leagueCode);
+
+        if (leagueMatches.length > 0) {
+          message += `🔺 *${leagueName}*\n`;
+
+          leagueMatches.forEach((match) => {
+            const homeTeam = teamShortnames[match.homeTeam.name] || match.homeTeam.name;
+            const awayTeam = teamShortnames[match.awayTeam.name] || match.awayTeam.name;
+
+            const isImportantMatch = importantTeams.includes(match.homeTeam.name) || importantTeams.includes(match.awayTeam.name);
+            const importantEmoji = isImportantMatch ? '🔥' : '';
+
+            const startTime = new Date(match.utcDate).toLocaleTimeString('fa-IR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+
+            message += `\n🔹 *${importantEmoji}* ${homeTeam} - ${awayTeam} ⏱ *${startTime}*\n`;
+          });
+
+          message += '\n';
+        }
+      }
+
+      if (message === "*بازی‌های فوتبال امروز:*\n\n") {
+        bot.sendMessage(chatId, 'امروز بازی‌ای در این لیگ‌ها وجود ندارد.');
+      } else {
+        bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+      }
     } catch (error) {
       console.error(error);
       bot.sendMessage(chatId, 'خطا در دریافت داده‌ها. لطفاً دوباره تلاش کنید.');
@@ -173,10 +193,65 @@ bot.on('callback_query', async (callbackQuery) => {
     });
   } else if (data.startsWith('league_')) {
     const leagueCode = data.split('_')[1];
-    await showLeagueTable(chatId, leagueCode);  
+    await showLeagueTable(chatId, leagueCode);
+  } else if (data === 'contact_support') {
+    bot.sendMessage(chatId, 'برای پشتیبانی با ایدی @AIinjad ارتباط بگیرید.');
+  } else if (data === 'back_to_main_menu') {
+    bot.sendMessage(chatId, 'خوش اومدی بیا باهم نگاهی به وضعیت فوتبال بندازیم', {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: 'نمایش بازی‌ها', callback_data: 'show_matches' }
+          ],
+          [
+            { text: 'نمایش جدول لیگ‌ها', callback_data: 'show_leagues' }
+          ],
+          [
+            { text: 'ارتباط با ادمین', callback_data: 'contact_support' }
+          ]
+        ]
+      }
+    });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const showLeagueTable = async (chatId, leagueCode) => {
+  try {
+    const competitionId = await getCompetitionId(leagueCode);
+    const response = await axios.get(`https://api.football-data.org/v4/competitions/${competitionId}/standings`, {
+      headers: {
+        'X-Auth-Token': API_KEY
+      }
+    });
+
+    const standings = response.data.standings[0].table;
+
+    if (standings.length === 0) {
+      bot.sendMessage(chatId, 'متاسفانه اطلاعات جدول در دسترس نیست.');
+      return;
+    }
+
+    let tableMessage = '*جدول لیگ:*\n\n';
+    standings.forEach((team, index) => {
+      tableMessage += `› *${index + 1}* : ${team.team.name} ⭐️   ${team.points} \n`;
+    });
+
+    bot.sendMessage(chatId, tableMessage, { parse_mode: 'Markdown' });
+
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, 'خطا در دریافت جدول لیگ. لطفاً دوباره تلاش کنید.');
+  }
+};
+
+const getCompetitionId = (leagueCode) => {
+  const competitionIds = {
+    premier: 'PL',
+    la: 'PD',
+    bundesliga: 'BL1',
+    uefa: 'CL',
+    serie: 'SA',
+  };
+  
+  return competitionIds[leagueCode];
+};
