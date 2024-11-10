@@ -1,4 +1,6 @@
-require('dotenv').config(); // برای استفاده از متغیرهای محیطی
+
+require('dotenv').config(); 
+const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
@@ -7,7 +9,21 @@ const API_KEY = process.env.API_KEY;
 const BASE_URL = 'https://api.football-data.org/v4/matches';
 const COMPETITIONS_URL = 'https://api.football-data.org/v4/competitions';
 
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+const bot = new TelegramBot(TELEGRAM_TOKEN);
+
+
+const app = express();
+const PORT = process.env.PORT || 8080; 
+
+
+bot.setWebHook(''); 
+
+app.use(express.json());
+
+app.post('/webhook', (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200); 
+});
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -28,6 +44,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
+// Callback query handler
 bot.on('callback_query', async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
@@ -43,7 +60,8 @@ bot.on('callback_query', async (callbackQuery) => {
           ]
         ]
       }
-    });try {
+    });
+    try {
       const today = new Date();
       const localDate = today.toISOString().split('T')[0];
       const response = await axios.get(BASE_URL, {
@@ -60,7 +78,6 @@ bot.on('callback_query', async (callbackQuery) => {
       }
 
       let message = "*بازی‌های فوتبال امروز:*\n\n";
-
       const importantTeams = [
         'FC Barcelona', 'Real Madrid CF', 'Liverpool FC', 'Manchester United FC',
         'Bayern München', 'Juventus FC', 'Paris Saint-Germain FC', 'Chelsea FC',
@@ -191,45 +208,7 @@ bot.on('callback_query', async (callbackQuery) => {
   }
 });
 
-const showLeagueTable = async (chatId, leagueCode) => {
-  try {
-    const competitionId = await getCompetitionId(leagueCode);
-    const response = await axios.get(`https://api.football-data.org/v4/competitions/${competitionId}/standings`, {
-      headers: {
-        'X-Auth-Token': API_KEY
-      }
-    });
-
-    const standings = response.data.standings[0].table;
-
-    if (standings.length === 0) {
-      bot.sendMessage(chatId, 'متاسفانه اطلاعات جدول در دسترس نیست.');
-      return;
-    }
-
-    let tableMessage = '*جدول لیگ:*\n\n';
-    standings.forEach((team, index) => {
-      tableMessage += `› *${index + 1}* : ${team.team.name} ⭐️   ${team.points} \n`;
-    });
-
-    bot.sendMessage(chatId, tableMessage, { parse_mode: 'Markdown' });
-
-  } catch (error) {
-    console.error(error);
-    bot.sendMessage(chatId, 'خطا در دریافت جدول لیگ. لطفاً دوباره تلاش کنید.');
-  }
-};
-
-const getCompetitionId = (leagueCode) => {
-  const competitionIds = {
-    premier: 'PL',
-    la: 'PD',
-    bundesliga: 'BL1',
-    uefa: 'CL',
-    serie: 'SA',
-  };
-  
-  return competitionIds[leagueCode];
-};
-
-console.log('Telegram Bot is running...');
+// راه‌اندازی سرور express
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
