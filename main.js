@@ -9,7 +9,8 @@ const API_KEY = process.env.API_KEY;
 const BASE_URL = 'https://api.football-data.org/v4/matches';
 const COMPETITIONS_URL = 'https://api.football-data.org/v4/competitions';
 
-const bot = new TelegramBot(TELEGRAM_TOKEN);
+const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+
 
 
 const app = express();
