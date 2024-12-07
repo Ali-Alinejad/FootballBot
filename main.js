@@ -150,9 +150,11 @@ bot.on('callback_query', async (callbackQuery) => {
             const importantEmoji = isImportantMatch ? '🔥' : '';
 
             const startTime = new Date(match.utcDate).toLocaleTimeString('fa-IR', {
+              timeZone: 'Asia/Tehran',
               hour: '2-digit',
               minute: '2-digit',
             });
+            
 
             message += `\n🔹 *${importantEmoji}* ${homeTeam} - ${awayTeam} ⏱ *${startTime}*\n`;
           });
